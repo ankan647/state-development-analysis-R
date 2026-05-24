@@ -56,6 +56,6 @@ The project uses the following indicators:
 
 The processed dataset is stored in an SQLite database for structured storage and retrieval within the analytical system.
 
-Database file:
+Database file.
 ```text
 development_analysis.db
