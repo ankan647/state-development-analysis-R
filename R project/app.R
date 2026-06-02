@@ -12,7 +12,7 @@
 # =========================================================
 # LOAD LIBRARIES
 # =========================================================
-setwd("C:/Users/ankan/Downloads")
+setwd("C:/Users/soumy/Downloads/state-development-analysis-R-main/state-development-analysis-R-main/R project")
 library(shiny)
 library(DT)
 library(DBI)
