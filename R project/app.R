@@ -62,6 +62,10 @@ ui <- fluidPage(
           plotOutput("cluster_plot")
         ),
 
+        tabPanel("Elbow Method",
+          plotOutput("elbow_plot")
+        ),
+
         tabPanel("Development Map",
           h3("State-wise Classification of Development Levels in India"),
           br(),
@@ -148,6 +152,25 @@ server <- function(input, output) {
       theme_minimal() +
       labs(title = "K-Means Clustering of Indian States",
            x = "Normalized Internet Access", y = "Development Score")
+  })
+
+  # Elbow method plot
+  output$elbow_plot <- renderPlot({
+    cluster_data <- df %>% select(internet_norm, eus_norm, hospital_norm, accessibility_norm)
+    cluster_data <- na.omit(cluster_data)
+
+    wcss <- sapply(1:10, function(k) {
+      kmeans(cluster_data, centers = k, nstart = 10)$tot.withinss
+    })
+
+    elbow_df <- data.frame(k = 1:10, WCSS = wcss)
+    ggplot(elbow_df, aes(x = k, y = WCSS)) +
+      geom_line(color = "steelblue", size = 1) +
+      geom_point(color = "steelblue", size = 3) +
+      scale_x_continuous(breaks = 1:10) +
+      theme_minimal() +
+      labs(title = "Elbow Method - Optimal Number of Clusters",
+           x = "Number of Clusters (k)", y = "Total Within-Cluster Sum of Squares")
   })
 
   # Regression summary
