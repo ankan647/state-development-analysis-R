@@ -159,6 +159,7 @@ server <- function(input, output) {
     cluster_data <- df %>% select(internet_norm, eus_norm, hospital_norm, accessibility_norm)
     cluster_data <- na.omit(cluster_data)
 
+    set.seed(123)
     wcss <- sapply(1:10, function(k) {
       kmeans(cluster_data, centers = k, nstart = 10)$tot.withinss
     })
@@ -169,8 +170,8 @@ server <- function(input, output) {
       geom_point(color = "steelblue", size = 3) +
       scale_x_continuous(breaks = 1:10) +
       theme_minimal() +
-      labs(title = "Elbow Method - Optimal Number of Clusters",
-           x = "Number of Clusters (k)", y = "Total Within-Cluster Sum of Squares")
+      labs(title = "Elbow Method for Optimal Number of Clusters",
+           x = "Number of Clusters (K)", y = "Total Within Sum of Squares")
   })
 
   # Regression summary
