@@ -76,6 +76,19 @@ ui <- fluidPage(
           verbatimTextOutput("regression_summary")
         ),
 
+        tabPanel("Correlation Heatmap",
+          plotOutput("heatmap_plot", height = "550px")
+        ),
+
+        tabPanel("Bubble Chart",
+          plotOutput("bubble_plot", height = "550px")
+        ),
+
+        tabPanel("Score Decomposition",
+          plotOutput("decomposition_plot", height = "650px")
+        ),
+
+
         tabPanel("State Explorer",
           h2(textOutput("state_name")),
           br(),
@@ -179,6 +192,56 @@ server <- function(input, output) {
     model <- lm(Development_Score ~ Internet + EUS + Hospitals + accessibility_raw, data = df)
     summary(model)
   })
+
+  # Correlation heatmap
+  output$heatmap_plot <- renderPlot({
+    numeric_data <- df %>% select(Internet, EUS, Rural, Urban, Hospitals, Development_Score)
+    cor_matrix <- cor(numeric_data, use = "complete.obs")
+    cor_df <- as.data.frame(as.table(cor_matrix))
+    names(cor_df) <- c("Var1", "Var2", "Correlation")
+
+    ggplot(cor_df, aes(x = Var1, y = Var2, fill = Correlation)) +
+      geom_tile(color = "white", linewidth = 1) +
+      geom_text(aes(label = round(Correlation, 2)), size = 4.5, color = "black") +
+      scale_fill_gradient2(low = "#d73027", mid = "white", high = "#1a9850", midpoint = 0, limits = c(-1, 1)) +
+      theme_minimal() +
+      labs(title = "Correlation Matrix of Development Indicators", x = "", y = "") +
+      theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 11),
+            axis.text.y = element_text(size = 11))
+  })
+
+  # Bubble chart
+  output$bubble_plot <- renderPlot({
+    ggplot(df, aes(x = Internet, y = EUS, size = Hospitals, color = Category, label = State)) +
+      geom_point(alpha = 0.7) +
+      geom_text(size = 2.5, vjust = -1.5, show.legend = FALSE) +
+      scale_size_continuous(range = c(3, 15), name = "Hospitals") +
+      theme_minimal() +
+      labs(title = "Multi-dimensional State Comparison",
+           subtitle = "Bubble size represents number of hospitals",
+           x = "Internet Access (%)", y = "Unemployment Rate (EUS)",
+           color = "Category")
+  })
+
+  # Score decomposition (dumbbell chart)
+  output$decomposition_plot <- renderPlot({
+    plot_df <- df %>%
+      arrange(Development_Score) %>%
+      mutate(State = factor(State, levels = State))
+
+    ggplot(plot_df) +
+      geom_segment(aes(x = State, xend = State, y = base_score, yend = Development_Score),
+                   color = "grey60", linewidth = 0.8) +
+      geom_point(aes(x = State, y = base_score, color = "Base Score"), size = 3) +
+      geom_point(aes(x = State, y = Development_Score, color = "Final Score"), size = 3) +
+      coord_flip() +
+      theme_minimal() +
+      scale_color_manual(values = c("Base Score" = "#2196F3", "Final Score" = "#E91E63")) +
+      labs(title = "Score Decomposition: Impact of Standard Deviation Penalty",
+           subtitle = "Gap between dots shows the penalty applied for uneven development",
+           x = "", y = "Score", color = "")
+  })
+
 
   # State explorer
   selected_data <- reactive({
